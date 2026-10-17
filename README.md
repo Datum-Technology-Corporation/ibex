@@ -114,3 +114,30 @@ License, Version 2.0 (see LICENSE for full text).
 
 Many people have contributed to Ibex through the years. Please have a look at
 the [credits file](CREDITS.md) and the commit history for more information.
+
+## Simulating with iSim
+
+[iSim](https://tn-si.com) (True North Silicon) runs this design through FuseSoC
+with its `.core` files untouched. FuseSoC selects a simulator through
+**edalize**; iSim's backend is `isimtn` (edalize's own `isim` is the Xilinx ISE
+Simulator) and lives in True North Silicon's edalize fork. Two installs, in this
+order, into the Python environment your `fusesoc` runs from:
+
+    pip install fusesoc
+    pip install --force-reinstall git+https://github.com/Datum-Technology-Corporation/edalize.git
+
+(the second replaces the edalize FuseSoC pulled in with the fork; pip warns
+that fusesoc pins `edalize>=0.4.1`, which the fork's development version
+number does not satisfy -- the warning is all that happens. Keep the two
+installs separate: one `pip install fusesoc git+...` resolves that pin by
+downgrading fusesoc.) `isim`, `isim-vlog`, `isim-vcom` and `isim-elab` must
+be on `PATH`.
+
+Then, from this checkout:
+
+    fusesoc --cores-root . run --tool=isimtn --setup --build lowrisc:ibex:ibex_simple_system
+
+analyses and elaborates the simple system (its parameters reach iSim as
+`isim-elab -defparam ibex_simple_system.<P>=<v>`). Cores that depend on
+virtual `prim` cores without a target-level binding need the mapping:
+`--mapping=lowrisc:prim_generic:all:0.1`.
